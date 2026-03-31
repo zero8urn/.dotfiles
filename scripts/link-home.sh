@@ -124,10 +124,21 @@ check_conflicts() {
 cleanup_symlink_targets() {
   local pkg="$1"
   local pkg_root="$DOTFILES_HOME/$pkg"
-  local src rel target
+  local src rel target parent
   while IFS= read -r -d '' src; do
     rel="${src#"$pkg_root"/}"
     target="$TARGET_HOME/$rel"
+
+    # If any parent path is a symlink from an old stow root, remove it first.
+    parent="$(dirname "$target")"
+    while [ "$parent" != "$TARGET_HOME" ] && [ "$parent" != "/" ]; do
+      if [ -L "$parent" ]; then
+        echo "[cleanup] removing conflicting symlink path $parent"
+        rm -f "$parent"
+      fi
+      parent="$(dirname "$parent")"
+    done
+
     if [ -L "$target" ]; then
       echo "[cleanup] removing existing symlink $target"
       rm -f "$target"
