@@ -1,8 +1,7 @@
 git:
-  paging:
-    colorArg: always
-    pager: delta --paging=never --features=side-by-side
-
+  pagers:
+    - colorArg: always
+      pager: delta --paging=never --features=side-by-side
 gui:
   showIcons: true
   mouseEvents: true

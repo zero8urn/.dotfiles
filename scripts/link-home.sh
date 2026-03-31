@@ -3,12 +3,13 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/link-home.sh [--adopt] [--simulate] [--restow] [package...]
+Usage: ./scripts/link-home.sh [--adopt] [--simulate] [--restow] [--skip-windows] [package...]
 
 Options:
   --adopt     Let stow adopt existing plain files into the stow package.
   --simulate  Print what would be changed without writing.
   --restow    Unstow and stow again (more aggressive, sometimes unnecessary).
+  --skip-windows  Skip Windows host sync (for example %USERPROFILE%\.wezterm.lua copy).
   --help      Show this help.
 
 Examples:
@@ -22,6 +23,7 @@ EOF
 ADOPT=0
 SIMULATE=0
 RESTOW=0
+SKIP_WINDOWS=0
 requested_packages=()
 
 while [ "$#" -gt 0 ]; do
@@ -34,6 +36,9 @@ while [ "$#" -gt 0 ]; do
       ;;
     --restow)
       RESTOW=1
+      ;;
+    --skip-windows)
+      SKIP_WINDOWS=1
       ;;
     --help|-h)
       usage
@@ -146,6 +151,78 @@ cleanup_symlink_targets() {
   done < <(find "$pkg_root" \( -type f -o -type l \) -print0)
 }
 
+is_wsl() {
+  if [ -n "${WSL_DISTRO_NAME:-}" ]; then
+    return 0
+  fi
+  grep -qi microsoft /proc/version 2>/dev/null
+}
+
+resolve_windows_home() {
+  local raw=""
+
+  if [ -n "${USERPROFILE:-}" ]; then
+    raw="$USERPROFILE"
+  elif command -v powershell.exe >/dev/null 2>&1; then
+    raw="$(powershell.exe -NoProfile -Command '$env:USERPROFILE' 2>/dev/null | tr -d '\r')"
+  fi
+
+  if [ -z "$raw" ]; then
+    return 1
+  fi
+
+  if command -v wslpath >/dev/null 2>&1; then
+    wslpath "$raw"
+  else
+    echo "$raw"
+  fi
+}
+
+sync_windows_wezterm_copy() {
+  local source="$REPO_ROOT/windows/wezterm/.wezterm.lua"
+  local windows_home=""
+  local target=""
+  local backup=""
+
+  if ! is_wsl; then
+    return 0
+  fi
+
+  if [ ! -f "$source" ]; then
+    return 0
+  fi
+
+  if ! windows_home="$(resolve_windows_home)"; then
+    echo "[warn] Could not resolve Windows user profile; skipping WezTerm Windows link"
+    return 0
+  fi
+
+  target="$windows_home/.wezterm.lua"
+
+  if [ "$SIMULATE" -eq 1 ]; then
+    echo "[simulate] sync Windows WezTerm config: $source -> $target"
+    return 0
+  fi
+
+  mkdir -p "$windows_home"
+
+  if [ -L "$target" ]; then
+    backup="$target.symlink.backup.$(date +%Y%m%d%H%M%S)"
+    echo "[cleanup] replacing unsupported Windows WezTerm symlink with regular file copy: $target"
+    cp -P "$target" "$backup" 2>/dev/null || true
+    rm -f "$target"
+  fi
+
+  if [ -e "$target" ] && [ "$ADOPT" -eq 1 ]; then
+    backup="$target.backup.$(date +%Y%m%d%H%M%S)"
+    echo "[adopt] moving existing Windows WezTerm config to $backup"
+    mv "$target" "$backup"
+  fi
+
+  cp "$source" "$target"
+  echo "[ok] synced Windows WezTerm config (file copy): $source -> $target"
+}
+
 if [ "$ADOPT" -eq 0 ]; then
   for pkg in "${packages[@]}"; do
     check_conflicts "$pkg"
@@ -170,5 +247,10 @@ echo "==> Linking packages into $TARGET_HOME"
     stow "${stow_args[@]}" "$pkg"
   done
 )
+
+if [ "$SKIP_WINDOWS" -eq 0 ]; then
+  echo "==> Syncing Windows host config (WSL only)"
+  sync_windows_wezterm_copy
+fi
 
 echo "==> Dotfiles linked"

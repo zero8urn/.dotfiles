@@ -24,6 +24,12 @@ Prerequisite: install Docker Desktop on Windows host and enable WSL integration 
 |   |   `-- .gitignore_global
 |   |-- lazygit/
 |   |   `-- .config/lazygit/config.yml
+|   |-- shell/
+|   |   |-- .bash_profile
+|   |   |-- .bashrc
+|   |   |-- .profile
+|   |   |-- .zshrc
+|   |   `-- .config/dotfiles/shell/env.sh
 |   |-- sesh/
 |   |   `-- .config/sesh/sesh.toml
 |   `-- tmux/
@@ -33,6 +39,7 @@ Prerequisite: install Docker Desktop on Windows host and enable WSL integration 
 |   |-- doctor.sh
 |   |-- install-tools.sh
 |   |-- link-home.sh
+|   |-- sync-wezterm.sh
 |   `-- install/
 |       |-- lib/
 |       |   `-- common.sh
@@ -52,7 +59,7 @@ cd /mnt/c/dev/.dotfiles
 chmod +x scripts/*.sh
 chmod +x scripts/install-tools.sh scripts/install/tools/*.sh
 ./scripts/bootstrap-wsl.sh
-./scripts/install-tools.sh tmux fzf ripgrep jq gh nvm node npm pyenv python dotnet claude copilot
+./scripts/install-tools.sh tmux fzf ripgrep jq gh nvm node npm pyenv python dotnet go claude copilot
 ./scripts/link-home.sh
 ./scripts/doctor.sh
 ```
@@ -68,6 +75,7 @@ Notes:
 - Use `--simulate` first if you want a dry run: `./scripts/link-home.sh --simulate`.
 - Use `--restow` only when you explicitly need to restow a package: `./scripts/link-home.sh --restow git`.
 - In `--adopt` mode, existing symlink targets for managed files are cleaned up first. This helps when migrating from an older clone path.
+- On WSL, `link-home.sh` also syncs `windows/wezterm/.wezterm.lua` to `%USERPROFILE%\\.wezterm.lua` as a regular file copy by default. Use `--skip-windows` to opt out.
 
 Optional tools that may require distro-specific/manual steps:
 
@@ -83,6 +91,7 @@ bash ./scripts/install/tools/docker-desktop.sh
 
 What this does:
 - Installs base prerequisites like tmux, stow, fzf, ripgrep, jq, git, and build deps.
+- Installs zsh for interactive shell use (scripts remain bash-based).
 - Installs selected tools through one-script-per-tool installers.
 - Symlinks stow packages from `home/` into your `$HOME`.
 
@@ -96,11 +105,43 @@ Useful commands:
 ```bash
 ./scripts/install-tools.sh --list
 ./scripts/install-tools.sh all
-./scripts/install-tools.sh gh television lazygit
+./scripts/install-tools.sh gh television lazygit go
+```
+
+## Shell setup
+This repo provides a shared shell environment file at `home/shell/.config/dotfiles/shell/env.sh`.
+
+After running `./scripts/link-home.sh`, this file is sourced from:
+- `.zshrc`
+- `.bashrc`
+- `.bash_profile`
+- `.profile`
+
+This ensures tools installed through Homebrew, pyenv, nvm, and Go are available across zsh, bash, tmux, and login shells on first setup.
+
+## Environment variables
+`PYENV_ROOT` is set in the shared shell env file. If you are not using the stowed shell package, set it manually in your shell profile:
+
+```bash
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
 ```
 
 ## WezTerm on Windows
-WezTerm reads `%USERPROFILE%\\.wezterm.lua` on Windows. Copy this repo config into place:
+WezTerm reads `%USERPROFILE%\\.wezterm.lua` on Windows. This is synced automatically as a regular file copy when you run `./scripts/link-home.sh` in WSL.
+
+Why copy and not symlink:
+- Recent WezTerm builds can block config traversal through untrusted mount points from WSL.
+- A regular file copy at `%USERPROFILE%\\.wezterm.lua` avoids startup errors.
+
+Two-way sync helper:
+
+```bash
+./scripts/sync-wezterm.sh --to-windows   # repo -> Windows (default)
+./scripts/sync-wezterm.sh --to-repo      # Windows -> repo
+```
+
+Manual fallback (if you skip Windows linking):
 
 ```powershell
 Copy-Item -Path .\windows\wezterm\.wezterm.lua -Destination $HOME\.wezterm.lua -Force

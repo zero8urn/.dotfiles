@@ -15,9 +15,11 @@ ordered_tools=(
   ripgrep
   jq
   gh
+  homebrew
   lazygit
   yazi
   television
+  go
   sesh
   gh-dash
   worktrunk

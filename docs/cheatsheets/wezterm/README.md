@@ -15,6 +15,8 @@ winget install -e --id wez.wezterm
 wezterm
 wezterm cli list
 wezterm start -- wsl.exe -d Ubuntu
+./scripts/sync-wezterm.sh --to-windows
+./scripts/sync-wezterm.sh --to-repo
 ```
 
 ## AI Workflow Notes
@@ -24,6 +26,7 @@ wezterm start -- wsl.exe -d Ubuntu
 ## Common Troubleshooting
 - If command is missing, re-run installer and open a new shell.
 - If PATH looks stale, run: `exec bash`.
+- If WezTerm reports config traversal or untrusted mount errors, sync a regular Windows copy: `./scripts/sync-wezterm.sh --to-windows`.
 - If auth is required, run each tool's login command before automation.
 
 ## Links
