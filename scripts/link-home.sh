@@ -121,6 +121,20 @@ check_conflicts() {
   done < <(find "$pkg_root" \( -type f -o -type l \) -print0)
 }
 
+cleanup_symlink_targets() {
+  local pkg="$1"
+  local pkg_root="$DOTFILES_HOME/$pkg"
+  local src rel target
+  while IFS= read -r -d '' src; do
+    rel="${src#"$pkg_root"/}"
+    target="$TARGET_HOME/$rel"
+    if [ -L "$target" ]; then
+      echo "[cleanup] removing existing symlink $target"
+      rm -f "$target"
+    fi
+  done < <(find "$pkg_root" \( -type f -o -type l \) -print0)
+}
+
 if [ "$ADOPT" -eq 0 ]; then
   for pkg in "${packages[@]}"; do
     check_conflicts "$pkg"
@@ -138,6 +152,9 @@ echo "==> Linking packages into $TARGET_HOME"
 (
   cd "$DOTFILES_HOME"
   for pkg in "${packages[@]}"; do
+    if [ "$ADOPT" -eq 1 ]; then
+      cleanup_symlink_targets "$pkg"
+    fi
     echo "- stow $pkg"
     stow "${stow_args[@]}" "$pkg"
   done

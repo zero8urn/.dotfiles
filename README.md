@@ -67,6 +67,7 @@ Notes:
 - Run `link-home.sh` from WSL/Linux, not Git Bash/MSYS.
 - Use `--simulate` first if you want a dry run: `./scripts/link-home.sh --simulate`.
 - Use `--restow` only when you explicitly need to restow a package: `./scripts/link-home.sh --restow git`.
+- In `--adopt` mode, existing symlink targets for managed files are cleaned up first. This helps when migrating from an older clone path.
 
 Optional tools that may require distro-specific/manual steps:
 
