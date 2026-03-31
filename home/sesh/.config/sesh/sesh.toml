@@ -1,0 +1,14 @@
+default_session = "home"
+
+[[session]]
+name = "home"
+path = "~"
+
+[[session]]
+name = "dotfiles"
+path = "~/dev/.dotfiles"
+startup_command = "nvim ."
+
+[[session]]
+name = "work"
+path = "~/work"

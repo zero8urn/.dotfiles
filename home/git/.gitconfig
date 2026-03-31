@@ -1,0 +1,31 @@
+[user]
+	email = 3292107+zero8urn@users.noreply.github.com
+	name = BDB
+[init]
+	defaultBranch = main
+[core]
+	autocrlf = false
+	eol = lf
+  excludesfile = ~/.gitignore_global
+  editor = code --wait
+[fetch]
+  prune = true
+[merge]
+  conflictstyle = zdiff3
+[pull]
+  rebase = false
+[pager]
+  diff = delta
+  log = delta
+  reflog = delta
+  show = delta
+[interactive]
+  diffFilter = delta --color-only
+[delta]
+  navigate = true
+  line-numbers = true
+  side-by-side = true
+[alias]
+  st = status -sb
+  lg = log --graph --decorate --oneline --all
+  cp = cherry-pick
