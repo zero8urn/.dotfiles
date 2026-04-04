@@ -15,6 +15,7 @@ function Add-PathEntry {
 
 Add-PathEntry -Entry (Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Links')
 Add-PathEntry -Entry (Join-Path $env:USERPROFILE '.local\bin')
+Add-PathEntry -Entry (Join-Path $env:ProgramFiles 'Go\bin')
 Add-PathEntry -Entry (Join-Path $env:USERPROFILE 'go\bin')
 Add-PathEntry -Entry (Join-Path $env:USERPROFILE 'tools')
 Add-PathEntry -Entry (Join-Path $env:APPDATA 'nvm')

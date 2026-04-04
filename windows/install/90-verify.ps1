@@ -28,18 +28,35 @@ $checks = @(
     @{ Name = 'opencode'; Args = '--version' }
 )
 
+$fallbackExecutables = @{
+    go = Join-Path $env:ProgramFiles 'Go\bin\go.exe'
+    sesh = Join-Path $env:USERPROFILE 'go\bin\sesh.exe'
+}
+
 $missing = @()
 
 foreach ($check in $checks) {
     $name = $check.Name
+    $commandToRun = $name
+
     if (-not (Test-CommandExists -Name $name)) {
-        Write-WarnMsg "$name is missing"
-        $missing += $name
-        continue
+        if ($fallbackExecutables.ContainsKey($name) -and (Test-Path -Path $fallbackExecutables[$name])) {
+            $commandToRun = $fallbackExecutables[$name]
+            Write-WarnMsg "$name is not on PATH; using fallback executable: $commandToRun"
+        }
+        else {
+            Write-WarnMsg "$name is missing"
+            $missing += $name
+            continue
+        }
     }
 
     Write-Info "Verifying $name"
-    & $name $check.Args | Select-Object -First 1 | Out-Host
+    & $commandToRun $check.Args | Select-Object -First 1 | Out-Host
+    if ($LASTEXITCODE -ne 0) {
+        Write-WarnMsg "$name command failed"
+        $missing += $name
+    }
 }
 
 if ($missing.Count -gt 0) {

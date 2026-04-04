@@ -103,7 +103,7 @@ pwsh -File .\windows\install\00-prereqs.ps1 -RequireAdmin
 pwsh -File .\windows\install\10-winget-core.ps1 -UpgradeInstalled
 pwsh -File .\windows\install\20-runtime-toolchains.ps1
 pwsh -File .\windows\install\30-custom-installers.ps1
-pwsh -File .\windows\install\50-chezmoi-apply.ps1 -RepoUrl <your-repo-url>
+pwsh -File .\windows\install\50-chezmoi-apply.ps1 -RepoUrl https://github.com/zero8urn/.dotfiles.git
 pwsh -File .\windows\install\60-bootstrap-profile.ps1
 pwsh -File .\windows\install\90-verify.ps1
 ```
@@ -160,6 +160,13 @@ Expected:
 This repo now uses dedicated installers:
 - One tool per script in `scripts/install/tools/`
 - One parent executor in `scripts/install-tools.sh`
+
+## Updating these files
+- Keep scripts idempotent: rerunning them should be safe and should not duplicate config.
+- If you change install order, update both `README.md` and `windows/install/README.md` in the same commit.
+- Put auth-dependent steps (for example `gh` extensions) in post-install sections, not core bootstrap flow.
+- When adding tools, update install scripts and `windows/install/90-verify.ps1` together.
+- After changes, run the Windows flow in a fresh PowerShell tab and confirm `pwsh -File .\windows\install\90-verify.ps1` passes.
 
 Useful commands:
 
