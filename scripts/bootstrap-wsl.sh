@@ -27,6 +27,7 @@ base_packages=(
   unzip
   zip
   zoxide
+  zsh
 )
 
 python_build_packages=(
@@ -55,7 +56,10 @@ echo "==> Installing base packages"
 sudo apt-get install -y "${base_packages[@]}" "${python_build_packages[@]}" "${optional_packages[@]}"
 
 echo "==> Bootstrap complete"
+if command -v zsh >/dev/null 2>&1; then
+  echo "zsh installed. Set as default shell if desired: chsh -s \"$(command -v zsh)\""
+fi
 echo "Next steps:"
-echo "  1) ./scripts/install-tools.sh tmux fzf ripgrep jq gh nvm node npm pyenv python"
+echo "  1) ./scripts/install-tools.sh tmux fzf ripgrep jq gh nvm node npm pyenv python dotnet go"
 echo "  2) ./scripts/link-home.sh"
 echo "  3) ./scripts/doctor.sh"

@@ -3,7 +3,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 . "$SCRIPT_DIR/../lib/common.sh"
 
-if [ -d "$HOME/.pyenv" ] && command_exists pyenv; then
+if ensure_pyenv_loaded; then
   ok "pyenv already installed"
   exit 0
 fi
@@ -26,4 +26,11 @@ install_apt_packages \
   zlib1g-dev
 
 curl -fsSL https://pyenv.run | bash
-ok "pyenv installed"
+
+if ensure_pyenv_loaded; then
+  ok "pyenv installed"
+  exit 0
+fi
+
+warn "pyenv installation completed, but pyenv is not available in this shell"
+exit 1

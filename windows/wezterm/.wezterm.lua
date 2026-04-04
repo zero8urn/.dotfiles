@@ -3,16 +3,21 @@ local act = wezterm.action
 local config = wezterm.config_builder()
 
 config.default_prog = { "wsl.exe", "-d", "Ubuntu" }
-config.font = wezterm.font_with_fallback({ "JetBrainsMono Nerd Font", "Cascadia Code PL" })
+config.window_close_confirmation = 'NeverPrompt'
+-- config.font = wezterm.font_with_fallback({ "JetBrainsMono Nerd Font", "Cascadia Code PL" })
 config.font_size = 12.0
 config.line_height = 1.05
-config.color_scheme = "Builtin Solarized Light"
-config.window_background_opacity = 0.96
+config.color_scheme = "Github Dark (Gogh)"
+config.window_background_opacity = 0.99
 config.window_decorations = "RESIZE"
-config.use_fancy_tab_bar = false
-config.hide_tab_bar_if_only_one_tab = true
+-- config.use_fancy_tab_bar = false
+-- config.hide_tab_bar_if_only_one_tab = true
 
-config.leader = { key = "a", mods = "CTRL", timeout_milliseconds = 1000 }
+-- TUI compatibility in WSL: use WezTerm's native TERM and avoid CSI-u key mode.
+config.term = "wezterm"
+config.enable_csi_u_key_encoding = false
+
+config.leader = { key = "Space", mods = "CTRL", timeout_milliseconds = 1000 }
 config.keys = {
   { key = "|", mods = "LEADER|SHIFT", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
   { key = "-", mods = "LEADER", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
