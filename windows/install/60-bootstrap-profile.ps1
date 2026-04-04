@@ -1,39 +1,10 @@
-param(
-    [switch]$UseSymlink
-)
-
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 . (Join-Path $PSScriptRoot 'lib/common.ps1')
 
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-$managedProfile = Join-Path $repoRoot 'windows\home\posh\dev.profile.ps1'
-$targetDevProfile = Join-Path $HOME 'dev.profile.ps1'
-
-if (-not (Test-Path -Path $managedProfile)) {
-    throw "Managed profile file not found: $managedProfile"
-}
-
-if ($UseSymlink) {
-    if (Test-Path -Path $targetDevProfile) {
-        Remove-Item -Path $targetDevProfile -Force
-    }
-
-    try {
-        New-Item -ItemType SymbolicLink -Path $targetDevProfile -Target $managedProfile -Force | Out-Null
-        Write-Ok "Created symlink: $targetDevProfile -> $managedProfile"
-    }
-    catch {
-        Write-WarnMsg 'Symlink creation failed; falling back to copy mode. Re-run elevated if you need symlinks.'
-        Copy-Item -Path $managedProfile -Destination $targetDevProfile -Force
-        Write-Ok "Copied managed profile to: $targetDevProfile"
-    }
-}
-else {
-    Copy-Item -Path $managedProfile -Destination $targetDevProfile -Force
-    Write-Ok "Copied managed profile to: $targetDevProfile"
-}
+# dev.profile.ps1 is placed by chezmoi apply (50-chezmoi-apply.ps1).
+# This script only wires the loader block into $PROFILE.
 
 if (-not (Test-Path -Path $PROFILE)) {
     New-Item -ItemType File -Path $PROFILE -Force | Out-Null

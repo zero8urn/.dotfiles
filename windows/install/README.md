@@ -31,5 +31,5 @@ pwsh -File .\windows\install\40-gh-extensions.ps1
 - `30-custom-installers.ps1` covers non-winget tooling and official installer fallbacks.
 - `20-runtime-toolchains.ps1` installs Go-managed tools (including sesh) and expects `nvm` to be available if Node install is desired.
 - `40-gh-extensions.ps1` is intended for post-install use after `gh auth login`.
-- `50-chezmoi-apply.ps1` initializes and applies chezmoi from your dotfiles source.
-- `60-bootstrap-profile.ps1` links/copies `windows/home/posh/dev.profile.ps1` to `$HOME\dev.profile.ps1` and appends a thin loader to `$PROFILE`.
+- `50-chezmoi-apply.ps1` initializes chezmoi and runs `chezmoi apply`, which places `~/.psmux.conf` and `~/dev.profile.ps1` from the `windows/chezmoi/` source root.
+- `60-bootstrap-profile.ps1` injects the dotfiles dev profile loader block into `$PROFILE` only. File placement is handled by step 50.
