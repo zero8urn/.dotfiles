@@ -86,6 +86,67 @@ What this does:
 - Installs selected tools through one-script-per-tool installers.
 - Symlinks stow packages from `home/` into your `$HOME`.
 
+## Windows setup
+Run from an elevated PowerShell 7 terminal:
+
+```powershell
+pwsh -File .\windows\install\00-prereqs.ps1 -RequireAdmin
+pwsh -File .\windows\install\10-winget-core.ps1 -UpgradeInstalled
+pwsh -File .\windows\install\20-runtime-toolchains.ps1
+pwsh -File .\windows\install\30-custom-installers.ps1
+pwsh -File .\windows\install\50-chezmoi-apply.ps1 -RepoUrl <your-repo-url>
+pwsh -File .\windows\install\60-bootstrap-profile.ps1
+pwsh -File .\windows\install\90-verify.ps1
+```
+
+Post-install (after auth):
+
+```powershell
+gh auth login
+pwsh -File .\windows\install\40-gh-extensions.ps1
+```
+
+Notes:
+- Run in a PowerShell tab directly (not `pwsh` launched inside Git Bash) for cleaner native tool output.
+- If execution policy blocks local scripts, run this in the current terminal session first:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy ByPass
+```
+
+### PowerShell profile UTF-8 setup
+Some native installers emit UTF-8 progress characters. Set UTF-8 in your PowerShell profile to avoid garbled output.
+
+Open your profile:
+
+```powershell
+if (!(Test-Path $PROFILE)) { New-Item -ItemType File -Path $PROFILE -Force | Out-Null }
+notepad $PROFILE
+```
+
+Add:
+
+```powershell
+# UTF-8 for native command output and input
+if ([Console]::OutputEncoding.CodePage -ne 65001) { chcp 65001 > $null }
+[Console]::InputEncoding  = [System.Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+$OutputEncoding = [Console]::OutputEncoding
+```
+
+Open a new PowerShell tab and verify:
+
+```powershell
+[Console]::OutputEncoding.WebName
+[Console]::OutputEncoding.CodePage
+chcp
+```
+
+Expected:
+- `utf-8`
+- `65001`
+- `Active code page: 65001`
+
 ## Installer model
 This repo now uses dedicated installers:
 - One tool per script in `scripts/install/tools/`
